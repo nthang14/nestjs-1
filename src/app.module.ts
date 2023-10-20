@@ -5,12 +5,15 @@ import { UserModule } from './users/users.module';
 import { NoteModule } from './note/note.module';
 import { AuthModule } from './auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { FileModule } from './file/file.module';
+
 @Module({
   imports: [
     UserModule,
     NoteModule,
     AuthModule,
     MongooseModule.forRoot('mongodb://127.0.0.1:27017/Project-nest1'),
+    FileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

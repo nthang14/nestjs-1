@@ -21,6 +21,9 @@ export class UsersService {
     return user;
   }
   async updateUserById(id: string, userPayload: Users) {
+    console.log('id', id);
+    console.log('userPayload', userPayload);
+
     const user = await this.model
       .findByIdAndUpdate(id, userPayload, { new: true })
       .exec();

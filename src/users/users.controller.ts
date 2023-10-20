@@ -11,7 +11,6 @@ import { UsersService } from './users.service';
 // import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '~/auth/guards/jwt-auth.guard';
-
 @Controller('users')
 export class UsersController {
   // eslint-disable-next-line prettier/prettier
@@ -38,7 +37,6 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteUser(@Param('id') id: string) {
-    console.log('deleteUser', id);
     return await this.service.deleteUser(id);
   }
 }
