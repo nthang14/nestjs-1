@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Users, UsersDocument } from './schemas/users.schema';
+import { Users, UsersDocument } from '~/users/schemas/users.schema';
 import { Model } from 'mongoose';
 
 @Injectable()
@@ -9,6 +9,14 @@ export class UsersService {
   constructor(
     @InjectModel(Users.name) private readonly model: Model<UsersDocument>,
   ) {}
+
+  async createUser(userPayload: Users) {
+    const user = await this.model.create(userPayload);
+    if (!user) {
+      throw new NotFoundException('User create failed');
+    }
+    return user;
+  }
   async getListUser() {
     const users = await this.model.find().exec();
     return users;
@@ -21,9 +29,6 @@ export class UsersService {
     return user;
   }
   async updateUserById(id: string, userPayload: Users) {
-    console.log('id', id);
-    console.log('userPayload', userPayload);
-
     const user = await this.model
       .findByIdAndUpdate(id, userPayload, { new: true })
       .exec();

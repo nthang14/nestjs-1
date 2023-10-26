@@ -7,12 +7,24 @@ export type FileDocument = HydratedDocument<File>;
 })
 export class File {
   @Prop()
-  url: string;
+  ggId: string;
+  @Prop()
+  fileExtension: string;
+  @Prop()
+  title: string;
+  @Prop()
+  webContentLink: string;
+  @Prop()
+  fileSize: number;
+  @Prop()
+  thumbnailLink: string;
+  @Prop()
+  iconLink: string;
+  @Prop()
+  sharedId: string[];
   @Prop()
   ownerId: string;
   @Prop()
-  type?: string;
-  @Prop()
-  sharedId: string[];
+  parentId: string;
 }
-export const UsersSchema = SchemaFactory.createForClass(File);
+export const FileSchema = SchemaFactory.createForClass(File);

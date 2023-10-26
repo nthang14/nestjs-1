@@ -1,10 +1,15 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 import { FileService } from './file.service';
 import { FileController } from './file.controller';
-import { CloudinaryProvider } from '~/file/providers/cloudinary.provider';
-import { CloudinaryService } from '~/file/cloudinary.service';
+import { GoogleDriveService } from '~/file/google-drive.service';
+import { JwtStrategy } from '~/auth/jwt.strategy';
+import { File, FileSchema } from '~/file/schemas/file.schema';
 @Module({
-  providers: [FileService, CloudinaryProvider, CloudinaryService],
+  imports: [
+    MongooseModule.forFeature([{ name: File.name, schema: FileSchema }]),
+  ],
+  providers: [FileService, GoogleDriveService, JwtStrategy],
   controllers: [FileController],
 })
 export class FileModule {}
