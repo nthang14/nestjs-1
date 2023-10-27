@@ -29,15 +29,20 @@ export class AuthService {
       _id: user._id,
     };
     return {
-      access_token: this.jwtService.sign(payload, {
-        secret: jwtConstants.secret,
-        expiresIn: '1d',
-      }),
-      refresh_token: this.jwtService.sign(payload, {
-        secret: 'refresh_token_secret',
-        expiresIn: '6d',
-      }),
-      profile: profile,
+      data: {
+        access_token: this.jwtService.sign(payload, {
+          secret: jwtConstants.secret,
+          expiresIn: '1d',
+        }),
+        refresh_token: this.jwtService.sign(payload, {
+          secret: 'refresh_token_secret',
+          expiresIn: '6d',
+        }),
+        profile: profile,
+      },
+      success: true,
+      statusCode: 200,
+      message: 'Login successfully !',
     };
   }
 }

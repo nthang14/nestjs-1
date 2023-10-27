@@ -11,5 +11,6 @@ import { File, FileSchema } from '~/file/schemas/file.schema';
   ],
   providers: [FileService, GoogleDriveService, JwtStrategy],
   controllers: [FileController],
+  exports: [FileService],
 })
 export class FileModule {}

@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UserModule } from './users/users.module';
-import { NoteModule } from './note/note.module';
-import { AuthModule } from './auth/auth.module';
+import { AppController } from '~/app.controller';
+import { AppService } from '~/app.service';
+import { UserModule } from '~/users/users.module';
+import { AuthModule } from '~/auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { FileModule } from './file/file.module';
+import { FileModule } from '~/file/file.module';
+import { FoldersModule } from './folders/folders.module';
 
 @Module({
   imports: [
     UserModule,
-    NoteModule,
     AuthModule,
     MongooseModule.forRoot('mongodb://127.0.0.1:27017/Project-nest1'),
     FileModule,
+    FoldersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -2,9 +2,7 @@ import * as mongoose from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import { Users } from '~/users/schemas/users.schema';
-import { Folder } from '~/folders/schemas/folders.schema';
-
-export type FileDocument = HydratedDocument<File>;
+export type FolderDocument = HydratedDocument<Folder>;
 
 @Schema({
   timestamps: true,
@@ -31,27 +29,9 @@ export type FileDocument = HydratedDocument<File>;
     },
   },
 })
-export class File {
-  @Prop()
-  ggId: string;
-
-  @Prop()
-  fileExtension: string;
-
+export class Folder {
   @Prop()
   title: string;
-
-  @Prop()
-  webContentLink: string;
-
-  @Prop()
-  fileSize: number;
-
-  @Prop()
-  thumbnailLink: string;
-
-  @Prop()
-  iconLink: string;
 
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
@@ -60,31 +40,31 @@ export class File {
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
-    ref: Users.name,
   })
   ownerId: mongoose.Schema.Types.ObjectId;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
   })
-  parentId?: string;
+  parentId?: mongoose.Schema.Types.ObjectId;
 }
-const FileSchema = SchemaFactory.createForClass(File);
-FileSchema.virtual('parent', {
+
+const FolderSchema = SchemaFactory.createForClass(Folder);
+FolderSchema.virtual('parent', {
   ref: Folder.name,
   localField: 'parentId',
   foreignField: '_id',
   justOne: true,
 });
-FileSchema.virtual('shared', {
+FolderSchema.virtual('shared', {
   ref: Users.name,
   localField: 'sharedIds',
   foreignField: '_id',
 });
-FileSchema.virtual('owner', {
+FolderSchema.virtual('owner', {
   ref: Users.name,
   localField: 'ownerId',
   foreignField: '_id',
   justOne: true,
 });
-export { FileSchema };
+export { FolderSchema };

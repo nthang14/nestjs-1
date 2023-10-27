@@ -8,6 +8,7 @@ import {
   NotFoundException,
   Get,
   Param,
+  Body,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '~/auth/guards/jwt-auth.guard';
@@ -26,9 +27,10 @@ export class FileController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
     @Req() request: Request,
   ) {
-    // console.log('request', request.user);
+    const { parentId } = body;
     const { _id: ownerId }: any = request.user;
     try {
       const {
@@ -48,8 +50,8 @@ export class FileController {
         fileSize,
         thumbnailLink,
         iconLink,
-        sharedId: ['test'],
         ownerId,
+        parentId,
       };
       return await this.fileService.createFile(filePayload);
     } catch (error) {
@@ -61,7 +63,7 @@ export class FileController {
   @Get('/files')
   async getFileByOwnerId(@Req() request: Request) {
     const { _id: ownerId }: any = request.user;
-    return await this.fileService.getAllFileOwnerId(ownerId);
+    return await this.fileService.getAllFileOwnerIdAndParentId(ownerId);
   }
   @UseGuards(JwtAuthGuard)
   @Get('/files/shared-me')

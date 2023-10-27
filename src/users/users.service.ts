@@ -13,9 +13,13 @@ export class UsersService {
   async createUser(userPayload: Users) {
     const user = await this.model.create(userPayload);
     if (!user) {
-      throw new NotFoundException('User create failed');
+      throw new NotFoundException('User create failed !');
     }
-    return user;
+    return {
+      data: user,
+      statusCode: 201,
+      message: 'User create successfully !',
+    };
   }
   async getListUser() {
     const users = await this.model.find().exec();
@@ -24,18 +28,26 @@ export class UsersService {
   async getUserById(id: string) {
     const user = await this.model.findById(id).exec();
     if (!user) {
-      throw new NotFoundException('User not found.');
+      throw new NotFoundException('User not found !');
     }
-    return user;
+    return {
+      data: user,
+      statusCode: 201,
+      message: 'Get user successfully !',
+    };
   }
   async updateUserById(id: string, userPayload: Users) {
     const user = await this.model
       .findByIdAndUpdate(id, userPayload, { new: true })
       .exec();
     if (!user) {
-      throw new NotFoundException('User update failed');
+      throw new NotFoundException('User update failed !');
     }
-    return user;
+    return {
+      statusCode: 200,
+      data: user,
+      message: 'User updated successfully !',
+    };
   }
   async deleteUser(id: string) {
     const result = await this.model.findByIdAndDelete(id).exec();
@@ -43,12 +55,13 @@ export class UsersService {
     if (!!result) {
       return {
         data: users,
-        message: 'User deleted successfully',
+        message: 'User deleted successfully !',
+        statusCode: 200,
       };
     } else {
       return {
-        code: 404,
-        message: 'User deleted failed',
+        statusCode: 404,
+        message: 'User deleted failed !',
       };
     }
   }
