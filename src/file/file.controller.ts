@@ -63,7 +63,11 @@ export class FileController {
   @Get('/files')
   async getFileByOwnerId(@Req() request: Request) {
     const { _id: ownerId }: any = request.user;
-    return await this.fileService.getAllFileOwnerIdAndParentId(ownerId);
+    const parentId = request?.query?.parentId ?? '';
+    return await this.fileService.getAllFileOwnerIdAndParentId(
+      ownerId,
+      parentId,
+    );
   }
   @UseGuards(JwtAuthGuard)
   @Get('/files/shared-me')

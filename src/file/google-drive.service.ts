@@ -54,4 +54,13 @@ export class GoogleDriveService {
     });
     return result.data;
   }
+
+  async getTokenGG() {
+    const auth = await this.getAuth();
+    const driveService = google.drive({ version: 'v2', auth });
+    const download = await driveService.files.list();
+    const token = download.config.headers.Authorization.split(' ')[1];
+    if (token) return token;
+    return '';
+  }
 }

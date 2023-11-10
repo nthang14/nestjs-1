@@ -3,10 +3,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { File, FileDocument } from '~/file/schemas/file.schema';
 import { Model } from 'mongoose';
 import { CreateFileDTO } from '~/file/dto/create-file.dto';
+import { GoogleDriveService } from '~/file/google-drive.service';
+
 @Injectable()
 export class FileService {
   constructor(
     @InjectModel(File.name) private readonly model: Model<FileDocument>,
+    private readonly googleDriveService: GoogleDriveService,
   ) {}
 
   async createFile(filePayload: CreateFileDTO) {
@@ -36,7 +39,7 @@ export class FileService {
     };
   }
 
-  async getAllFileOwnerIdAndParentId(ownerId: string, parentId?: string) {
+  async getAllFileOwnerIdAndParentId(ownerId: string, parentId?: any) {
     const query = !!parentId ? { ownerId, parentId } : { ownerId };
     const files = await this.model
       .find(query)
@@ -58,9 +61,11 @@ export class FileService {
     if (!files) {
       throw new NotFoundException('Get file failed !');
     }
+    const token = await this.googleDriveService.getTokenGG();
     return {
       data: files,
       statusCode: 200,
+      googleToken: token,
       message: 'Get file successfully !',
     };
   }
@@ -95,12 +100,17 @@ export class FileService {
     };
   }
 
-  async getFileById(id: string, readerPermissionsId: string) {
+  async getFileById(fileId: string, readerPermissionsId: string) {
     const file = await this.model
       .findOne({
-        $or: [
-          { ownerId: { $eq: readerPermissionsId } },
-          { sharedId: { $elemMatch: { $in: [readerPermissionsId] } } },
+        $and: [
+          {
+            $or: [
+              { ownerId: { $eq: readerPermissionsId } },
+              { sharedId: { $elemMatch: { $in: [readerPermissionsId] } } },
+            ],
+          },
+          { _id: fileId },
         ],
       })
       .populate([

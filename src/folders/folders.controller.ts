@@ -7,6 +7,7 @@ import {
   Put,
   Param,
   Get,
+  Query,
 } from '@nestjs/common';
 import { Request } from 'express';
 
@@ -15,6 +16,8 @@ import { JwtAuthGuard } from '~/auth/guards/jwt-auth.guard';
 import { CreateFolderDTO } from '~/folders/dto/create-folder.dto';
 import { UpdateFolderDTO } from '~/folders/dto/update-folder.dto';
 import { FileService } from '~/file/file.service';
+import { Search } from '~/types/index';
+
 @Controller('folders')
 export class FoldersController {
   constructor(
@@ -44,11 +47,10 @@ export class FoldersController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async getFolders(@Req() request: Request) {
+  async getFolders(@Req() request: Request, @Query() querySearch: Search) {
     const { _id: ownerId }: any = request.user;
     const parentId = request?.query?.parentId ?? '';
-    console.log('parentId', parentId);
-    return await this.foldersService.getFolders(ownerId, parentId);
+    return await this.foldersService.getFolders(ownerId, parentId, querySearch);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -93,5 +95,12 @@ export class FoldersController {
       ownerId,
       userId,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/shared-me')
+  async getFolderBySharedId(@Req() request: Request) {
+    const { _id: ownerId }: any = request.user;
+    return await this.foldersService.getAllFolderShareWithMe(ownerId);
   }
 }
