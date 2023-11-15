@@ -8,6 +8,7 @@ import {
   Param,
   Get,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { Request } from 'express';
 
@@ -44,12 +45,32 @@ export class FoldersController {
       ...folder,
     });
   }
+  @UseGuards(JwtAuthGuard)
+  @Put(':id/star')
+  async updateStarFolder(
+    @Param('id') id: string,
+    @Body() start: { isStar: boolean },
+    @Req() request: Request,
+  ) {
+    const { _id: ownerId }: any = request.user;
+    return await this.foldersService.updateStartFolderById(
+      id,
+      ownerId,
+      start.isStar,
+    );
+  }
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deleteFolder(@Param('id') id: string, @Req() request: Request) {
+    const { _id: ownerId }: any = request.user;
+    return await this.foldersService.deleteFolderById(id, ownerId);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get()
   async getFolders(@Req() request: Request, @Query() querySearch: Search) {
-    const { _id: ownerId }: any = request.user;
     const parentId = request?.query?.parentId ?? '';
+    const { _id: ownerId }: any = request.user;
     return await this.foldersService.getFolders(ownerId, parentId, querySearch);
   }
 

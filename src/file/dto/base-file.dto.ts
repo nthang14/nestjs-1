@@ -5,7 +5,8 @@ export class BaseFileDTO {
 
   @IsNotEmpty()
   title: string;
-
+  @IsOptional()
+  isStar?: boolean;
   @IsNotEmpty()
   fileExtension: string;
 

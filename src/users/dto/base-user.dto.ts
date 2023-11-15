@@ -7,10 +7,6 @@ export class BaseUserDTO {
   @IsNotEmpty()
   @MaxLength(50)
   username: string;
-
-  @IsNotEmpty()
-  avatar: string;
-
   @IsNotEmpty()
   password: string;
 }

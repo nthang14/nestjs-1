@@ -7,6 +7,7 @@ import {
   Delete,
   UseGuards,
   Post,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -19,8 +20,8 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async getListUser() {
-    return await this.service.getListUser();
+  async getListUser(@Query() query: any) {
+    return await this.service.getListUser(query);
   }
 
   @Post()

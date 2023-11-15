@@ -32,7 +32,7 @@ export class AuthService {
       data: {
         access_token: this.jwtService.sign(payload, {
           secret: jwtConstants.secret,
-          expiresIn: '1d',
+          expiresIn: '6d',
         }),
         refresh_token: this.jwtService.sign(payload, {
           secret: 'refresh_token_secret',

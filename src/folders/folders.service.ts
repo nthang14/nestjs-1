@@ -5,6 +5,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { CreateFolderDTO } from '~/folders/dto/create-folder.dto';
 import { UpdateFolderDTO } from '~/folders/dto/update-folder.dto';
 import { Search } from '~/types/index';
+import * as mongoose from 'mongoose';
+import { LIMIT_DEFAULT } from '~/utils/constants';
 @Injectable()
 export class FoldersService {
   constructor(
@@ -39,10 +41,35 @@ export class FoldersService {
   }
 
   async getFolders(ownerId: string, parentId?: any, querySearch?: Search) {
-    const limit = querySearch.limit || 10;
-    const skip = querySearch.page ? (querySearch.page - 1) * limit : 0;
-
-    const query = !!parentId ? { ownerId, parentId } : { ownerId };
+    const limit = querySearch?.limit || LIMIT_DEFAULT;
+    const skip = querySearch?.page ? (querySearch?.page - 1) * limit : 0;
+    const query = !querySearch?.star
+      ? {
+          ownerId: new mongoose.Types.ObjectId(ownerId),
+          parentId: parentId ? new mongoose.Types.ObjectId(parentId) : null,
+        }
+      : {
+          $and: [
+            {
+              $or: [
+                {
+                  sharedIds: {
+                    $elemMatch: { $in: [new mongoose.Types.ObjectId(ownerId)] },
+                  },
+                },
+                {
+                  ownerId: new mongoose.Types.ObjectId(ownerId),
+                },
+              ],
+            },
+            {
+              parentId: parentId ? new mongoose.Types.ObjectId(parentId) : null,
+            },
+            {
+              isStar: true,
+            },
+          ],
+        };
     const folders = await this.model
       .find(query)
       .skip(skip)
@@ -50,7 +77,7 @@ export class FoldersService {
       .populate([
         {
           path: 'owner',
-          select: '_id avatar fullName',
+          select: '_id username fullName',
         },
         {
           path: 'parent',
@@ -58,7 +85,7 @@ export class FoldersService {
         },
         {
           path: 'shared',
-          select: '_id avatar fullName',
+          select: '_id username fullName',
         },
       ])
       .exec();
@@ -117,14 +144,50 @@ export class FoldersService {
     };
   }
 
+  async updateStartFolderById(
+    folderId: string,
+    ownerId: string,
+    folderPayload: boolean,
+  ) {
+    const folder = await this.model
+      .findOneAndUpdate(
+        {
+          _id: folderId,
+          ownerId,
+        },
+        { $set: { isStar: folderPayload } },
+        { new: true },
+      )
+      .populate([
+        {
+          path: 'owner',
+          select: '_id avatar fullName',
+        },
+        {
+          path: 'parent',
+          select: 'title _id',
+        },
+        {
+          path: 'shared',
+          select: '_id avatar fullName',
+        },
+      ])
+      .exec();
+    if (!folder) {
+      throw new NotFoundException('Folder update failed !');
+    }
+    return {
+      statusCode: 200,
+      data: folder,
+      message: 'Folder updated successfully !',
+    };
+  }
+
   async sharingPermissionsFolder(
     folderId: string,
     ownerId: string,
     sharedIds: string[],
   ) {
-    console.log('folderId', folderId);
-    console.log('ownerId', ownerId);
-    console.log('sharedIds', sharedIds);
     const folder = await this.model
       .findOneAndUpdate(
         {
@@ -150,7 +213,6 @@ export class FoldersService {
       ])
       .exec();
 
-    console.log('folder', folder);
     if (!folder) {
       throw new NotFoundException('Shared failed !');
     }
@@ -203,7 +265,9 @@ export class FoldersService {
   async getAllFolderShareWithMe(sharedId: string) {
     const folders = await this.model
       .find({
-        sharedId: { $elemMatch: { $in: [sharedId] } },
+        sharedIds: {
+          $elemMatch: { $in: [new mongoose.Types.ObjectId(sharedId)] },
+        },
       })
       .populate([
         {
@@ -237,7 +301,7 @@ export class FoldersService {
           {
             $or: [
               { ownerId: ownerId },
-              { sharedId: { $elemMatch: { $in: [shareId] } } },
+              { sharedIds: { $elemMatch: { $in: [shareId] } } },
             ],
           },
           { _id: folderId },
@@ -265,6 +329,20 @@ export class FoldersService {
       data: folder,
       statusCode: 200,
       message: 'Get folder successfully !',
+    };
+  }
+
+  async deleteFolderById(folderId: string, ownerId: string) {
+    const result = await this.model
+      .findOneAndDelete({ _id: folderId, ownerId: ownerId })
+      .exec();
+
+    if (!result) {
+      throw new NotFoundException('Folder deleted failed !');
+    }
+    return {
+      message: 'Folder deleted successfully',
+      statusCode: 200,
     };
   }
 }

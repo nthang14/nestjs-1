@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Users, UsersDocument } from '~/users/schemas/users.schema';
 import { Model } from 'mongoose';
-
+import { PAGE_DEFAULT, LIMIT_DEFAULT } from '~/utils/constants';
 @Injectable()
 export class UsersService {
   // eslint-disable-next-line prettier/prettier
@@ -21,8 +21,16 @@ export class UsersService {
       message: 'User create successfully !',
     };
   }
-  async getListUser() {
-    const users = await this.model.find().exec();
+  async getListUser(query: any) {
+    const limit = query?.limit || LIMIT_DEFAULT;
+    const skip = ((query?.page || PAGE_DEFAULT) - 1) * limit;
+    const users = await this.model
+      .find({
+        fullName: { $regex: query?.fullName || '', $options: 'i' },
+      })
+      .skip(skip)
+      .limit(limit)
+      .exec();
     return users;
   }
   async getUserById(id: string) {

@@ -37,7 +37,8 @@ export class File {
 
   @Prop()
   fileExtension: string;
-
+  @Prop({ type: Boolean, default: false })
+  isStar: boolean;
   @Prop()
   title: string;
 
