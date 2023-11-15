@@ -62,6 +62,7 @@ export class FoldersController {
   ) {
     const { sharedIds }: any = body;
     const { _id: ownerId }: any = request.user;
+    console.log('id, ownerId, sharedIds', id, ownerId, sharedIds);
     try {
       const result = await this.foldersService.sharingPermissionsFolder(
         id,

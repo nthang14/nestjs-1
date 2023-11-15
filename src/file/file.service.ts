@@ -90,12 +90,14 @@ export class FileService {
         },
       ])
       .exec();
+    const token = await this.googleDriveService.getTokenGG();
     if (!files) {
       throw new NotFoundException('Get file failed !');
     }
     return {
       data: files,
       statusCode: 200,
+      googleToken: token,
       message: 'Get file successfully !',
     };
   }
