@@ -12,4 +12,6 @@ export class BaseFolderDTO {
 
   @IsOptional()
   parentId?: string;
+  @IsOptional()
+  startIds?: string[];
 }

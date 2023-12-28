@@ -9,6 +9,8 @@ import {
   Get,
   Param,
   Body,
+  Put,
+  Delete,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '~/auth/guards/jwt-auth.guard';
@@ -64,16 +66,27 @@ export class FileController {
   async getFileByOwnerId(@Req() request: Request) {
     const { _id: ownerId }: any = request.user;
     const parentId = request?.query?.parentId ?? '';
+    const isStar = request?.query?.isStar ?? null;
+
     return await this.fileService.getAllFileOwnerIdAndParentId(
       ownerId,
       parentId,
+      isStar,
     );
   }
   @UseGuards(JwtAuthGuard)
   @Get('/files/shared-me')
   async getFileBySharedId(@Req() request: Request) {
     const { _id: ownerId }: any = request.user;
-    return await this.fileService.getAllFileSharedId(ownerId);
+    const parentId = request?.query?.parentId ?? '';
+    const isStar = request?.query?.isStar ?? null;
+    return await this.fileService.getAllFileSharedId(ownerId, parentId, isStar);
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get('/files/total-byte')
+  async getTotalByte(@Req() request: Request) {
+    const { _id: ownerId }: any = request.user;
+    return await this.fileService.totalSizeFile(ownerId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -82,4 +95,78 @@ export class FileController {
     const { _id: ownerId }: any = request.user;
     return await this.fileService.getFileById(id, ownerId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('/files/:id/sharing')
+  async sharingPermissionsFile(
+    @Param('id') id: string,
+    @Body() body: string[],
+    @Req() request: Request,
+  ) {
+    const { sharedIds }: any = body;
+    const { _id: ownerId }: any = request.user;
+    try {
+      const result = await this.fileService.sharingPermissionsFile(
+        id,
+        ownerId,
+        sharedIds,
+      );
+      return result;
+    } catch (err) {
+      console.log('err', err);
+    }
+  }
+  @UseGuards(JwtAuthGuard)
+  @Delete('/files/:id')
+  async deleteFile(@Param('id') id: string, @Req() request: Request) {
+    const { _id: ownerId }: any = request.user;
+    return await this.fileService.deleteFileById(id, ownerId);
+  }
+  @UseGuards(JwtAuthGuard)
+  @Put('/files/:id/star')
+  async updateStarFile(
+    @Param('id') id: string,
+    @Req() request: Request,
+  ) {
+    const { _id: ownerId }: any = request.user;
+    return await this.fileService.updateStartFileById(
+      id,
+      ownerId,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put(':id/remove-star')
+  async removeStarFolder(
+    @Param('id') id: string,
+    @Req() request: Request,
+  ) {
+    const { _id: ownerId }: any = request.user;
+    return await this.fileService.removeStart(
+      id,
+      ownerId,
+    );
+  }
+  @UseGuards(JwtAuthGuard)
+  @Put('/files/:id/remove')
+  async removePermissionsFile(
+    @Param('id') id: string,
+    @Body() body: string,
+    @Req() request: Request,
+  ) {
+    const { userId }: any = body;
+    const { _id: ownerId }: any = request.user;
+    return await this.fileService.removePermissionsFile(id, ownerId, userId);
+  }
+  @UseGuards(JwtAuthGuard)
+  @Put('/files/:id')
+  async updateFile(
+    @Param('id') id: string,
+    @Body() file: any,
+    @Req() request: Request,
+  ) {
+    const { _id: ownerId }: any = request.user;
+    return await this.fileService.updateFileById(id, ownerId, file?.title);
+  }
+  
 }

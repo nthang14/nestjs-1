@@ -32,11 +32,15 @@ export type FolderDocument = HydratedDocument<Folder>;
 export class Folder {
   @Prop()
   title: string;
-
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
   })
   sharedIds?: mongoose.Schema.Types.ObjectId[];
+
+  @Prop({
+    type: [mongoose.Schema.Types.ObjectId],
+  })
+  startIds?: mongoose.Schema.Types.ObjectId[];
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
@@ -45,6 +49,7 @@ export class Folder {
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
+    default: null,
   })
   parentId?: mongoose.Schema.Types.ObjectId;
 }

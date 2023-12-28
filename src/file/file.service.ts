@@ -4,6 +4,7 @@ import { File, FileDocument } from '~/file/schemas/file.schema';
 import { Model } from 'mongoose';
 import { CreateFileDTO } from '~/file/dto/create-file.dto';
 import { GoogleDriveService } from '~/file/google-drive.service';
+import * as mongoose from 'mongoose';
 
 @Injectable()
 export class FileService {
@@ -39,8 +40,24 @@ export class FileService {
     };
   }
 
-  async getAllFileOwnerIdAndParentId(ownerId: string, parentId?: any) {
-    const query = !!parentId ? { ownerId, parentId } : { ownerId };
+  async getAllFileOwnerIdAndParentId(
+    ownerId: string,
+    parentId?: any,
+    isStar?: any,
+  ) {
+    const query = isStar
+      ? {
+          ownerId: new mongoose.Types.ObjectId(ownerId),
+          parentId: parentId ? new mongoose.Types.ObjectId(parentId) : null,
+          startIds: {
+            $elemMatch: { $in: [new mongoose.Types.ObjectId(ownerId)] },
+          },
+        }
+      : {
+          ownerId: new mongoose.Types.ObjectId(ownerId),
+          parentId: parentId ? new mongoose.Types.ObjectId(parentId) : null,
+        };
+
     const files = await this.model
       .find(query)
       .populate([
@@ -70,11 +87,33 @@ export class FileService {
     };
   }
 
-  async getAllFileSharedId(sharedId: string) {
+  async getAllFileSharedId(sharedId: string, parentId?: any, star?: any) {
+    const query = !star
+      ? {
+          sharedIds: {
+            $elemMatch: { $in: [new mongoose.Types.ObjectId(sharedId)] },
+          },
+          parentId: parentId ? new mongoose.Types.ObjectId(parentId) : null,
+        }
+      : {
+          $and: [
+            {
+              sharedIds: {
+                $elemMatch: { $in: [new mongoose.Types.ObjectId(sharedId)] },
+              },
+            },
+            {
+              parentId: parentId ? new mongoose.Types.ObjectId(parentId) : null,
+            },
+            {
+              startIds: {
+                $elemMatch: { $in: [new mongoose.Types.ObjectId(sharedId)] },
+              },
+            },
+          ],
+        };
     const files = await this.model
-      .find({
-        sharedId: { $elemMatch: { $in: [sharedId] } },
-      })
+      .find(query)
       .populate([
         {
           path: 'owner',
@@ -148,9 +187,7 @@ export class FileService {
     if (!result) {
       throw new NotFoundException('File deleted failed !');
     }
-    const files = await this.getAllFileOwnerIdAndParentId(ownerId);
     return {
-      data: files,
       message: 'File deleted successfully',
       statusCode: 200,
     };
@@ -165,23 +202,23 @@ export class FileService {
       .findOneAndUpdate(
         {
           _id: fileId,
-          ownerId,
+          ownerId: ownerId,
         },
-        { $addToSet: { sharedIds: sharedIds } },
+        { $set: { sharedIds: sharedIds } },
         { new: true },
       )
       .populate([
         {
           path: 'owner',
-          select: '_id avatar fullName',
+          select: '_id username fullName',
         },
         {
           path: 'parent',
-          select: 'title _id',
+          select: 'title _id ',
         },
         {
           path: 'shared',
-          select: '_id avatar fullName',
+          select: '_id username fullName',
         },
       ])
       .exec();
@@ -196,11 +233,7 @@ export class FileService {
     };
   }
 
-  async removePermissionsFolder(
-    fileId: string,
-    ownerId: string,
-    userId: string,
-  ) {
+  async removePermissionsFile(fileId: string, ownerId: string, userId: string) {
     const file = await this.model
       .findOneAndUpdate(
         {
@@ -307,5 +340,99 @@ export class FileService {
       data: result,
       message: 'Shared successfully !',
     };
+  }
+  async updateStartFileById(
+    fileId: string,
+    ownerId: string,
+  ) {
+    const folder = await this.model
+      .findOneAndUpdate(
+        {
+          _id: fileId,
+          ownerId,
+        },
+        { $set: { startIds: [ownerId] } },
+        { new: true },
+      )
+      .exec();
+    if (!folder) {
+      throw new NotFoundException('Folder update failed !');
+    }
+    return {
+      statusCode: 200,
+      data: folder,
+      message: 'Folder updated successfully !',
+    };
+  }
+  async removeStart(fileId: string, ownerId: string) {
+    const folder = await this.model
+      .findOneAndUpdate(
+        {
+          _id: fileId,
+          ownerId,
+        },
+        { $pullAll: { startIds: [ownerId] } },
+        { new: true },
+      )
+      .populate([
+        {
+          path: 'owner',
+          select: '_id avatar fullName',
+        },
+        {
+          path: 'parent',
+          select: 'title _id',
+        },
+        {
+          path: 'shared',
+          select: '_id avatar fullName',
+        },
+      ])
+      .exec();
+    if (!folder) {
+      throw new NotFoundException('Remove start failed !');
+    }
+    return {
+      statusCode: 200,
+      data: folder,
+      message: 'Remove start successfully !',
+    };
+  }
+
+  async updateFileById(fileId: string, ownerId: string, title: string) {
+    const folder = await this.model
+      .findOneAndUpdate(
+        {
+          _id: fileId,
+          ownerId,
+        },
+        { $set: { title: title } },
+        { new: true },
+      )
+      .exec();
+    if (!folder) {
+      throw new NotFoundException('Folder update failed !');
+    }
+    return {
+      statusCode: 200,
+      data: folder,
+      message: 'Folder updated successfully !',
+    };
+  }
+
+  async totalSizeFile(ownerId: string) {
+    return await this.model.aggregate([
+      {
+        $match: {
+          ownerId: ownerId,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalByte: { $sum: '$fileSize' },
+        },
+      },
+    ]);
   }
 }

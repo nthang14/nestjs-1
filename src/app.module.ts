@@ -11,7 +11,9 @@ import { FoldersModule } from './folders/folders.module';
   imports: [
     UserModule,
     AuthModule,
-    MongooseModule.forRoot('mongodb://127.0.0.1:27017/Project-nest1'),
+    MongooseModule.forRoot(
+      'mongodb+srv://nguyenhang04141997:Hang1441997@cluster0.hqeq7yk.mongodb.net/Document',
+    ),
     FileModule,
     FoldersModule,
   ],

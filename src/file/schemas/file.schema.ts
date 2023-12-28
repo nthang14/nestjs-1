@@ -37,7 +37,10 @@ export class File {
 
   @Prop()
   fileExtension: string;
-
+  @Prop({
+    type: [mongoose.Schema.Types.ObjectId],
+  })
+  startIds?: mongoose.Schema.Types.ObjectId[];
   @Prop()
   title: string;
 

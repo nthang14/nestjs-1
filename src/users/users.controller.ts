@@ -8,11 +8,13 @@ import {
   UseGuards,
   Post,
   Query,
+  Req
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '~/auth/guards/jwt-auth.guard';
+import { Request } from 'express';
 @Controller('users')
 export class UsersController {
   // eslint-disable-next-line prettier/prettier
@@ -21,7 +23,6 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get()
   async getListUser(@Query() query: any) {
-    console.log('query', query);
     return await this.service.getListUser(query);
   }
 
@@ -37,8 +38,9 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Put(':id')
-  async updateUser(@Param('id') id: string, @Body() user: UpdateUserDto) {
+  @Put()
+  async updateUser(@Req() request: Request, @Body() user: UpdateUserDto) {
+    const { _id: id }: any = request.user;
     return await this.service.updateUserById(id, user);
   }
 
@@ -46,5 +48,12 @@ export class UsersController {
   @Delete(':id')
   async deleteUser(@Param('id') id: string) {
     return await this.service.deleteUser(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('/change-password')
+  async changePassword(@Req() request: Request, @Body() user: UpdateUserDto) {
+    const { _id: id }: any = request.user;
+    return await this.service.changePassword(id, user.password);
   }
 }

@@ -8,6 +8,7 @@ import {
   Param,
   Get,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { Request } from 'express';
 
@@ -44,12 +45,43 @@ export class FoldersController {
       ...folder,
     });
   }
+  @UseGuards(JwtAuthGuard)
+  @Put(':id/star')
+  async updateStarFolder(
+    @Param('id') id: string,
+    @Body() body: string[],
+    @Req() request: Request,
+  ) {
+    const { _id: ownerId }: any = request.user;
+    return await this.foldersService.updateStartFolderById(
+      id,
+      ownerId,
+    );
+  }
+  @UseGuards(JwtAuthGuard)
+  @Put(':id/remove-star')
+  async removeStarFolder(
+    @Param('id') id: string,
+    @Req() request: Request,
+  ) {
+    const { _id: ownerId }: any = request.user;
+    return await this.foldersService.removeStart(
+      id,
+      ownerId,
+    );
+  }
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deleteFolder(@Param('id') id: string, @Req() request: Request) {
+    const { _id: ownerId }: any = request.user;
+    return await this.foldersService.deleteFolderById(id, ownerId);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get()
   async getFolders(@Req() request: Request, @Query() querySearch: Search) {
-    const { _id: ownerId }: any = request.user;
     const parentId = request?.query?.parentId ?? '';
+    const { _id: ownerId }: any = request.user;
     return await this.foldersService.getFolders(ownerId, parentId, querySearch);
   }
 
@@ -62,7 +94,6 @@ export class FoldersController {
   ) {
     const { sharedIds }: any = body;
     const { _id: ownerId }: any = request.user;
-    console.log('id, ownerId, sharedIds', id, ownerId, sharedIds);
     try {
       const result = await this.foldersService.sharingPermissionsFolder(
         id,
@@ -100,8 +131,9 @@ export class FoldersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/shared-me')
-  async getFolderBySharedId(@Req() request: Request) {
+  async getFolderBySharedId(@Req() request: Request, @Query() querySearch: any) {
     const { _id: ownerId }: any = request.user;
-    return await this.foldersService.getAllFolderShareWithMe(ownerId);
+    const isStart:boolean = querySearch?.isStart || false
+    return await this.foldersService.getAllFolderShareWithMe(ownerId, isStart);
   }
 }

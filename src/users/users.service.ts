@@ -44,7 +44,7 @@ export class UsersService {
       message: 'Get user successfully !',
     };
   }
-  async updateUserById(id: string, userPayload: Users) {
+  async updateUserById(id: string, userPayload: any) {
     const user = await this.model
       .findByIdAndUpdate(id, userPayload, { new: true })
       .exec();
@@ -55,6 +55,19 @@ export class UsersService {
       statusCode: 200,
       data: user,
       message: 'User updated successfully !',
+    };
+  }
+  async changePassword(id: string, password: string) {
+    const user = await this.model
+      .findByIdAndUpdate(id, { password: password }, { new: true })
+      .exec();
+    if (!user) {
+      throw new NotFoundException('Change password failed !');
+    }
+    return {
+      statusCode: 200,
+      data: user,
+      message: 'Change password successfully !',
     };
   }
   async deleteUser(id: string) {
